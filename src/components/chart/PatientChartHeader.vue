@@ -4,7 +4,7 @@ import { computed, type WritableComputedRef } from 'vue'
 import type { PatientInfo, ChartSummary, PdBreakdown } from '@/domain/chart/chart.types'
 import CountrySelect from './CountrySelect.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   patientInfo: PatientInfo
   summary: ChartSummary
   showValidation?: boolean
@@ -14,7 +14,9 @@ const props = defineProps<{
   visitFieldsDisabled?: boolean
   showSummary?: boolean
   forceDesktop?: boolean
-}>()
+}>(), {
+  showSummary: true,
+})
 
 const emit = defineEmits<{
   'update:patientInfo': [value: PatientInfo]
@@ -170,7 +172,7 @@ const sortedPdBreakdown = computed(() => {
     </div>
 
 
-    <div v-if="props.showSummary !== false" class="px-6 py-3 bg-linear-to-r from-slate-50 to-white border-t border-slate-100">
+    <div v-if="props.showSummary" class="px-6 py-3 bg-linear-to-r from-slate-50 to-white border-t border-slate-100">
       <div class="flex items-center gap-3 overflow-x-auto">
 
         <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-100 whitespace-nowrap">
