@@ -66,11 +66,23 @@ const strengthPercent = computed(
   () => (passedRuleCount.value / passwordRules.value.length) * 100,
 );
 
+// Acceptable = 6+ characters and at least 3 of the other 4 rules; strong = all 5
+const isPasswordStrong = computed(
+  () => passedRuleCount.value === passwordRules.value.length,
+);
+const isPasswordAcceptable = computed(
+  () => passwordRules.value[0].met && passedRuleCount.value >= 4,
+);
+
 const strengthColor = computed(() => {
-  if (passedRuleCount.value <= 2) return "bg-red-500";
-  if (passedRuleCount.value < passwordRules.value.length) return "bg-orange-400";
-  return "bg-green-500";
+  if (isPasswordStrong.value) return "bg-green-500";
+  if (isPasswordAcceptable.value) return "bg-orange-400";
+  return "bg-red-500";
 });
+
+const strengthTextColor = computed(() =>
+  isPasswordStrong.value ? "text-green-500" : "text-orange-400",
+);
 
 const shakeRules = ref(false);
 const showPassword = ref(false);
@@ -95,7 +107,7 @@ const register = async () => {
   }
 
 
-  if (passedRuleCount.value < passwordRules.value.length) {
+  if (!isPasswordAcceptable.value) {
     errors.password = "Password does not meet all requirements";
     // Re-trigger the shake animation on every failed submit
     shakeRules.value = false;
@@ -383,13 +395,18 @@ const register = async () => {
                   :type="showPassword ? 'text' : 'password'"
                   placeholder="********"
                   :class="[
-                    'w-full bg-[#f1f5f9] border-none rounded-[10px] py-2.5 pl-4 pr-24 text-[#1f2937] placeholder-[#9ca3af] focus:ring-2 focus:ring-[#0052ff] outline-none transition-all',
+                    'w-full bg-[#f1f5f9] border-none rounded-[10px] py-2.5 pl-4 pr-28 text-[#1f2937] placeholder-[#9ca3af] focus:ring-2 focus:ring-[#0052ff] outline-none transition-all',
                     errors.password ? 'ring-2 ring-red-500 bg-red-50' : '',
                   ]"
                 />
                 <div
-                  class="absolute inset-y-0 right-10 flex items-center pointer-events-none"
+                  v-if="form.password"
+                  class="absolute inset-y-0 right-10 flex items-center gap-1 pointer-events-none"
                 >
+                  <Check
+                    v-if="isPasswordAcceptable"
+                    :class="['h-4 w-4', strengthTextColor]"
+                  />
                   <div class="h-1.5 w-12 rounded-full bg-[#e2e8f0] overflow-hidden">
                     <div
                       :class="['h-full rounded-full transition-all', strengthColor]"
