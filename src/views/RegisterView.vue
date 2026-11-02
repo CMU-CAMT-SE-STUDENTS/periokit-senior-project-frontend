@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { useNotificationStore } from "../stores/notification";
-import { Upload, Eye, EyeOff, Loader2 } from "lucide-vue-next";
+import { Upload, Eye, EyeOff, Loader2, Check, X } from "lucide-vue-next";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -45,6 +45,31 @@ const errors = reactive({
   email: "",
   password: "",
   confirmPassword: "",
+});
+
+const passwordRules = computed(() => [
+  { label: "At least 6 characters", met: form.password.length >= 6 },
+  { label: "One lowercase letter (a-z)", met: /[a-z]/.test(form.password) },
+  { label: "One uppercase letter (A-Z)", met: /[A-Z]/.test(form.password) },
+  { label: "One number (0-9)", met: /[0-9]/.test(form.password) },
+  {
+    label: "One special character (!@#$%^&*)",
+    met: /[^A-Za-z0-9]/.test(form.password),
+  },
+]);
+
+const passedRuleCount = computed(
+  () => passwordRules.value.filter((rule) => rule.met).length,
+);
+
+const strengthPercent = computed(
+  () => (passedRuleCount.value / passwordRules.value.length) * 100,
+);
+
+const strengthColor = computed(() => {
+  if (passedRuleCount.value <= 2) return "bg-red-500";
+  if (passedRuleCount.value < passwordRules.value.length) return "bg-orange-400";
+  return "bg-green-500";
 });
 
 const showPassword = ref(false);
@@ -364,10 +389,20 @@ const register = async () => {
                   :type="showPassword ? 'text' : 'password'"
                   placeholder="********"
                   :class="[
-                    'w-full bg-[#f1f5f9] border-none rounded-[10px] py-2.5 pl-4 pr-10 text-[#1f2937] placeholder-[#9ca3af] focus:ring-2 focus:ring-[#0052ff] outline-none transition-all',
+                    'w-full bg-[#f1f5f9] border-none rounded-[10px] py-2.5 pl-4 pr-24 text-[#1f2937] placeholder-[#9ca3af] focus:ring-2 focus:ring-[#0052ff] outline-none transition-all',
                     errors.password ? 'ring-2 ring-red-500 bg-red-50' : '',
                   ]"
                 />
+                <div
+                  class="absolute inset-y-0 right-10 flex items-center pointer-events-none"
+                >
+                  <div class="h-1.5 w-12 rounded-full bg-[#e2e8f0] overflow-hidden">
+                    <div
+                      :class="['h-full rounded-full transition-all', strengthColor]"
+                      :style="{ width: `${strengthPercent}%` }"
+                    />
+                  </div>
+                </div>
                 <button
                   type="button"
                   @click="showPassword = !showPassword"
@@ -383,6 +418,23 @@ const register = async () => {
               >
                 {{ errors.password }}
               </p>
+              <div
+                v-if="form.password"
+                class="mt-2 rounded-[10px] bg-[#f1f5f9] p-3"
+              >
+                <ul class="space-y-1.5">
+                  <li
+                    v-for="rule in passwordRules"
+                    :key="rule.label"
+                    class="flex items-center gap-2 text-[12px]"
+                    :class="rule.met ? 'text-[#1f2937]' : 'text-[#9ca3af]'"
+                  >
+                    <Check v-if="rule.met" class="h-4 w-4 text-green-500" />
+                    <X v-else class="h-4 w-4 text-[#9ca3af]" />
+                    {{ rule.label }}
+                  </li>
+                </ul>
+              </div>
             </div>
             <div>
               <label class="block text-[13px] font-bold text-[#1f2937] mb-1.5"
