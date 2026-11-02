@@ -73,6 +73,14 @@ const register = async () => {
     errors.password = "Please enter your Password";
   } else if (form.password.length < 6) {
     errors.password = "Password must be at least 6 characters";
+  } else if (!/[a-z]/.test(form.password)) {
+    errors.password = "Password must contain a lowercase letter";
+  } else if (!/[A-Z]/.test(form.password)) {
+    errors.password = "Password must contain an uppercase letter";
+  } else if (!/[0-9]/.test(form.password)) {
+    errors.password = "Password must contain a number";
+  } else if (!/[^A-Za-z0-9]/.test(form.password)) {
+    errors.password = "Password must contain a special character";
   }
 
 
