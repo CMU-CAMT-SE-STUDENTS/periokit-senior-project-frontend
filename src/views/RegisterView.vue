@@ -408,10 +408,7 @@ const register = async () => {
               </div>
               <div
                 v-if="form.password || errors.password"
-                :class="[
-                  'mt-2 rounded-[10px] bg-[#f1f5f9] p-3',
-                  { 'shake-rules': shakeRules },
-                ]"
+                class="mt-2 rounded-[10px] bg-[#f1f5f9] p-3"
                 @animationend="shakeRules = false"
               >
                 <ul class="space-y-1.5">
@@ -419,13 +416,14 @@ const register = async () => {
                     v-for="rule in passwordRules"
                     :key="rule.label"
                     class="flex items-center gap-2 text-[12px]"
-                    :class="
+                    :class="[
                       rule.met
                         ? 'text-[#1f2937]'
                         : errors.password
                           ? 'text-red-500 font-bold'
-                          : 'text-[#9ca3af]'
-                    "
+                          : 'text-[#9ca3af]',
+                      { 'shake-rules': shakeRules && !rule.met },
+                    ]"
                   >
                     <Check v-if="rule.met" class="h-4 w-4 text-green-500" />
                     <X v-else class="h-4 w-4" />
