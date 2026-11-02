@@ -72,6 +72,7 @@ const strengthColor = computed(() => {
   return "bg-green-500";
 });
 
+const shakeRules = ref(false);
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 
@@ -94,18 +95,11 @@ const register = async () => {
   }
 
 
-  if (!form.password) {
-    errors.password = "Please enter your Password";
-  } else if (form.password.length < 6) {
-    errors.password = "Password must be at least 6 characters";
-  } else if (!/[a-z]/.test(form.password)) {
-    errors.password = "Password must contain a lowercase letter";
-  } else if (!/[A-Z]/.test(form.password)) {
-    errors.password = "Password must contain an uppercase letter";
-  } else if (!/[0-9]/.test(form.password)) {
-    errors.password = "Password must contain a number";
-  } else if (!/[^A-Za-z0-9]/.test(form.password)) {
-    errors.password = "Password must contain a special character";
+  if (passedRuleCount.value < passwordRules.value.length) {
+    errors.password = "Password does not meet all requirements";
+    // Re-trigger the shake animation on every failed submit
+    shakeRules.value = false;
+    requestAnimationFrame(() => (shakeRules.value = true));
   }
 
 
@@ -412,25 +406,29 @@ const register = async () => {
                   <Eye v-else class="h-5 w-5" />
                 </button>
               </div>
-              <p
-                v-if="errors.password"
-                class="text-red-500 text-[11px] font-bold mt-1 ml-1"
-              >
-                {{ errors.password }}
-              </p>
               <div
-                v-if="form.password"
-                class="mt-2 rounded-[10px] bg-[#f1f5f9] p-3"
+                v-if="form.password || errors.password"
+                :class="[
+                  'mt-2 rounded-[10px] bg-[#f1f5f9] p-3',
+                  { 'shake-rules': shakeRules },
+                ]"
+                @animationend="shakeRules = false"
               >
                 <ul class="space-y-1.5">
                   <li
                     v-for="rule in passwordRules"
                     :key="rule.label"
                     class="flex items-center gap-2 text-[12px]"
-                    :class="rule.met ? 'text-[#1f2937]' : 'text-[#9ca3af]'"
+                    :class="
+                      rule.met
+                        ? 'text-[#1f2937]'
+                        : errors.password
+                          ? 'text-red-500 font-bold'
+                          : 'text-[#9ca3af]'
+                    "
                   >
                     <Check v-if="rule.met" class="h-4 w-4 text-green-500" />
-                    <X v-else class="h-4 w-4 text-[#9ca3af]" />
+                    <X v-else class="h-4 w-4" />
                     {{ rule.label }}
                   </li>
                 </ul>
@@ -504,3 +502,24 @@ const register = async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.shake-rules {
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+</style>
